@@ -1,0 +1,32 @@
+{
+  "name": "mk2word",
+  "version": "1.0.0",
+  "description": "本地 Markdown 转 Word 文档工具",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "docx": "^8.5.0",
+    "markdown-docx": "^1.0.1",
+    "markdown-it": "^13.0.2",
+    "turndown": "^7.1.2"
+  },
+  "build": {
+    "appId": "com.mk2word.app",
+    "productName": "Mk2Word",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "portable"
+    }
+  }
+}

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Mk2Word - Markdown 转 Word</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      padding: 40px;
+      width: 100%;
+      max-width: 520px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: #666;
+      font-size: 14px;
+    }
+    .file-area {
+      margin-bottom: 25px;
+    }
+    .file-input {
+      display: flex;
+      gap: 10px;
+    }
+    .file-path {
+      flex: 1;
+      padding: 12px 15px;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      background: #f9f9f9;
+      color: #666;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .file-path.has-file {
+      border-color: #667eea;
+      background: #f0f3ff;
+      color: #333;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .preview {
+      margin-bottom: 25px;
+    }
+    .preview-label {
+      display: block;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .preview-content {
+      width: 100%;
+      height: 150px;
+      padding: 15px;
+      border: 2px solid #eee;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #333;
+      resize: none;
+      background: #fafafa;
+    }
+    .preview-content:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .actions {
+      display: flex;
+      justify-content: center;
+    }
+    .status {
+      text-align: center;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+    }
+    .status.success {
+      display: block;
+      background: #d4edda;
+      color: #155724;
+    }
+    .status.error {
+      display: block;
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #999;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Mk2Word</h1>
+      <p>将 Markdown 文档转换为 Word 文档</p>
+    </div>
+    
+    <div class="file-area">
+      <div class="file-input">
+        <div class="file-path" id="filePath">请选择 Markdown 文件...</div>
+        <button class="btn btn-primary" id="selectBtn">选择文件</button>
+      </div>
+    </div>
+    
+    <div class="preview">
+      <label class="preview-label">文件预览：</label>
+      <textarea class="preview-content" id="preview" readonly placeholder="选择文件后将在此显示内容预览..."></textarea>
+    </div>
+    
+    <div class="actions">
+      <button class="btn btn-primary" id="convertBtn" disabled>转换为 Word</button>
+    </div>
+    
+    <div class="status" id="status"></div>
+    
+    <div class="footer">
+      支持 .md, .markdown, .txt 格式
+    </div>
+  </div>
+  
+  <script>
+    const { ipcRenderer } = require('electron');
+    
+    let currentFile = null;
+    
+    const filePathEl = document.getElementById('filePath');
+    const previewEl = document.getElementById('preview');
+    const selectBtn = document.getElementById('selectBtn');
+    const convertBtn = document.getElementById('convertBtn');
+    const statusEl = document.getElementById('status');
+    
+    selectBtn.addEventListener('click', async () => {
+      const result = await ipcRenderer.invoke('open-file');
+      if (result) {
+        currentFile = result;
+        filePathEl.textContent = result.filePath;
+        filePathEl.classList.add('has-file');
+        previewEl.value = result.content.substring(0, 1000);
+        convertBtn.disabled = false;
+        statusEl.className = 'status';
+        statusEl.textContent = '';
+      }
+    });
+    
+    convertBtn.addEventListener('click', async () => {
+      if (!currentFile) return;
+      
+      convertBtn.disabled = true;
+      convertBtn.textContent = '转换中...';
+      
+      try {
+        const result = await ipcRenderer.invoke('convert-md-to-docx', currentFile.content);
+        
+        if (result.success) {
+          const saveResult = await ipcRenderer.invoke('save-file', result.buffer, currentFile.filePath);
+          
+          if (saveResult.success) {
+            statusEl.className = 'status success';
+            statusEl.textContent = '转换成功！文件已保存至: ' + saveResult.filePath;
+          } else {
+            statusEl.className = 'status error';
+            statusEl.textContent = '保存文件失败';
+          }
+        } else {
+          statusEl.className = 'status error';
+          statusEl.textContent = '转换失败: ' + result.error;
+        }
+      } catch (error) {
+        statusEl.className = 'status error';
+        statusEl.textContent = '转换失败: ' + error.message;
+      }
+      
+      convertBtn.disabled = false;
+      convertBtn.textContent = '转换为 Word';
+    });
+  </script>
+</body>
+</html>
