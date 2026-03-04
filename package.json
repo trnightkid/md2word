@@ -1,5 +1,5 @@
 {
-  "name": "mk2word",
+  "name": "md2word",
   "version": "1.0.0",
   "description": "本地 Markdown 转 Word 文档工具",
   "main": "src/main.js",
@@ -20,8 +20,8 @@
     "turndown": "^7.1.2"
   },
   "build": {
-    "appId": "com.mk2word.app",
-    "productName": "Mk2Word",
+    "appId": "com.md2word.app",
+    "productName": "Md2Word",
     "directories": {
       "output": "dist"
     },
