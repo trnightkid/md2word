@@ -1,0 +1,46 @@
+name: Build Windows Executable
+
+on:
+  push:
+    branches: [ master, main ]
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: md2word/package-lock.json
+
+      - name: Install dependencies
+        working-directory: md2word
+        run: npm ci
+
+      - name: Build executable
+        working-directory: md2word
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Md2Word-Windows
+          path: md2word/dist/
+          retention-days: 30
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: md2word/dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

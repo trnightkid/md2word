@@ -3,21 +3,19 @@
   "version": "1.0.0",
   "description": "本地 Markdown 转 Word 文档工具",
   "main": "src/main.js",
+  "author": "Zyan",
+  "license": "MIT",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win"
   },
-  "author": "",
-  "license": "MIT",
   "devDependencies": {
     "electron": "^28.3.3",
     "electron-builder": "^24.9.1"
   },
   "dependencies": {
     "docx": "^8.5.0",
-    "markdown-docx": "^1.0.1",
-    "markdown-it": "^13.0.2",
-    "turndown": "^7.1.2"
+    "markdown-it": "^13.0.2"
   },
   "build": {
     "appId": "com.md2word.app",
